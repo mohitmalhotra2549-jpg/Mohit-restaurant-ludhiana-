@@ -135,7 +135,7 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
                 auto-rotate
                 auto-rotate-delay="1200"
                 rotation-per-second="18deg"
-                camera-orbit={dish.model.cameraOrbit ?? "0deg 75deg 1.2m"}
+                camera-orbit={dish.model.cameraOrbit ?? "0deg 75deg auto"}
                 field-of-view="30deg"
                 shadow-intensity="1.1"
                 shadow-softness="0.8"

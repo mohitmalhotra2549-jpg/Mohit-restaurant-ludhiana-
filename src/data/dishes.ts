@@ -42,7 +42,7 @@ export const dishes: Dish[] = [
     model: {
       glb: "/models/chocolate-cake.glb",
       usdz: "/models/chocolate-cake.usdz",
-      cameraOrbit: "35deg 70deg 1.1m",
+      cameraOrbit: "35deg 70deg auto",
       arScale: "auto",
     },
   },
@@ -71,7 +71,7 @@ export const dishes: Dish[] = [
     model: {
       glb: "/models/grilled-sandwich.glb",
       usdz: "/models/grilled-sandwich.usdz",
-      cameraOrbit: "25deg 75deg 1m",
+      cameraOrbit: "25deg 75deg auto",
       arScale: "auto",
     },
   },
@@ -101,7 +101,7 @@ export const dishes: Dish[] = [
     model: {
       glb: "/models/momos.glb",
       usdz: "/models/momos.usdz",
-      cameraOrbit: "15deg 65deg 0.9m",
+      cameraOrbit: "15deg 65deg auto",
       arScale: "auto",
     },
   },
@@ -129,7 +129,7 @@ export const dishes: Dish[] = [
     model: {
       glb: "/models/pastry.glb",
       usdz: "/models/pastry.usdz",
-      cameraOrbit: "20deg 70deg 0.8m",
+      cameraOrbit: "20deg 70deg auto",
       arScale: "auto",
     },
   },
@@ -160,7 +160,7 @@ export const dishes: Dish[] = [
     model: {
       glb: "/models/zinger-burger.glb",
       usdz: "/models/zinger-burger.usdz",
-      cameraOrbit: "30deg 75deg 1.1m",
+      cameraOrbit: "30deg 75deg auto",
       arScale: "auto",
     },
   },
