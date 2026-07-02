@@ -21,14 +21,6 @@ interface ARViewerProps {
   onClose: () => void;
 }
 
-/**
- * Full-screen AR / 3D preview modal.
- *
- * Uses <model-viewer> under the hood, which automatically routes to:
- *  - Android  → Scene Viewer (or WebXR when supported)
- *  - iOS      → Quick Look (via the `ios-src` .usdz asset)
- *  - Desktop  → interactive 3D preview with orbit controls
- */
 export function ARViewer({ dish, open, onClose }: ARViewerProps) {
   const modelRef = useRef<HTMLElement | null>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
@@ -63,7 +55,20 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
 
     const onLoad = () => {
       setModelLoaded(true);
-      setTimeout(() => setCanActivateAR(!!el.canActivateAR), 300);
+      let attempts = 0;
+      const checkAR = () => {
+        attempts += 1;
+        if (el.canActivateAR) {
+          setCanActivateAR(true);
+          return;
+        }
+        if (attempts >= 6) {
+          setCanActivateAR(false);
+          return;
+        }
+        setTimeout(checkAR, 400);
+      };
+      setTimeout(checkAR, 300);
     };
     const onArStatus = (e: any) => {
       const status = e?.detail?.status;
