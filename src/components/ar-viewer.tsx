@@ -128,7 +128,7 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
                 ios-src={dish.model.usdz}
                 alt={`3D model of ${dish.name}`}
                 ar
-                ar-modes="webxr scene-viewer quick-look"
+                ar-modes="scene-viewer webxr quick-look"
                 ar-scale={dish.model.arScale ?? "auto"}
                 ar-placement="floor"
                 camera-controls
