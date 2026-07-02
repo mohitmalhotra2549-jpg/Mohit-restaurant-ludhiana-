@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
   Move3d,
   RotateCw,
   Smartphone,
@@ -31,19 +32,48 @@ interface ARViewerProps {
 export function ARViewer({ dish, open, onClose }: ARViewerProps) {
   const modelRef = useRef<HTMLElement | null>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
-  const [arSupported, setArSupported] = useState(true);
+  const [canActivateAR, setCanActivateAR] = useState<boolean | null>(null);
+  const [arError, setArError] = useState<string | null>(null);
+  const [viewerKey, setViewerKey] = useState(0);
 
   useEffect(() => {
-    if (!open) setModelLoaded(false);
+    if (!open) {
+      setModelLoaded(false);
+      setCanActivateAR(null);
+      setArError(null);
+    }
   }, [open]);
 
   useEffect(() => {
-    const el = modelRef.current;
+    if (!open) return;
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        setModelLoaded(false);
+        setCanActivateAR(null);
+        setViewerKey((k) => k + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [open]);
+
+  useEffect(() => {
+    const el = modelRef.current as any;
     if (!el) return;
-    const onLoad = () => setModelLoaded(true);
+
+    const onLoad = () => {
+      setModelLoaded(true);
+      setTimeout(() => setCanActivateAR(!!el.canActivateAR), 300);
+    };
     const onArStatus = (e: any) => {
-      if (e?.detail?.status === "not-presenting" && e?.detail?.reason) {
-        // no-op, purely informational
+      const status = e?.detail?.status;
+      if (status === "failed") {
+        setArError(
+          "Couldn't start AR on this device/browser. Try Chrome on Android with Google Play Services for AR installed, or Safari on iPhone."
+        );
+      }
+      if (status === "not-presenting") {
+        setTimeout(() => setViewerKey((k) => k + 1), 50);
       }
     };
     el.addEventListener("load", onLoad);
@@ -52,17 +82,18 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
       el.removeEventListener("load", onLoad);
       el.removeEventListener("ar-status", onArStatus as EventListener);
     };
-  }, [open]);
-
-  useEffect(() => {
-    // @ts-ignore
-    const supported = typeof navigator !== "undefined";
-    setArSupported(supported);
-  }, []);
+  }, [open, viewerKey]);
 
   const handleActivateAR = () => {
     const el = modelRef.current as any;
-    if (el?.activateAR) el.activateAR();
+    setArError(null);
+    if (el?.canActivateAR) {
+      el.activateAR();
+    } else {
+      setArError(
+        "AR isn't supported on this device/browser yet. On Android, use Chrome + Google Play Services for AR. On iPhone, use Safari."
+      );
+    }
   };
 
   return (
@@ -84,7 +115,6 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
             onClick={(e) => e.stopPropagation()}
             className="relative flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-ink-900 shadow-2xl sm:h-[85vh] sm:rounded-[28px]"
           >
-            {/* header */}
             <div className="flex items-center justify-between border-b border-white/10 bg-ink-900/90 px-5 py-4 sm:px-8">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-shine bg-[length:200%_auto] text-ink-950 animate-shimmer">
@@ -108,7 +138,6 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
               </button>
             </div>
 
-            {/* viewer */}
             <div className="relative flex-1 bg-[radial-gradient(ellipse_at_center,_#181820_0%,_#0b0b10_75%)]">
               {!modelLoaded && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4">
@@ -121,8 +150,8 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
                 </div>
               )}
 
-              {/* @ts-ignore custom element */}
               <model-viewer
+                key={viewerKey}
                 ref={modelRef}
                 src={dish.model.glb}
                 ios-src={dish.model.usdz}
@@ -154,9 +183,38 @@ export function ARViewer({ dish, open, onClose }: ARViewerProps) {
                   View on your table
                 </button>
               </model-viewer>
+
+              {modelLoaded && canActivateAR === false && !arError && (
+                <div className="pointer-events-none absolute inset-x-4 bottom-6 z-20 flex justify-center">
+                  <div className="pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-2xl border border-amber-400/30 bg-ink-950/90 px-4 py-3 text-left backdrop-blur">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <p className="text-xs leading-relaxed text-cream-100/70">
+                      AR isn&apos;t available on this device/browser. On
+                      Android, open this page in{" "}
+                      <span className="text-cream-100">Chrome</span> and
+                      install{" "}
+                      <span className="text-cream-100">
+                        Google Play Services for AR
+                      </span>
+                      . On iPhone, use{" "}
+                      <span className="text-cream-100">Safari</span>.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {arError && (
+                <div className="pointer-events-none absolute inset-x-4 bottom-6 z-20 flex justify-center">
+                  <div className="pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-2xl border border-rose-400/30 bg-ink-950/90 px-4 py-3 text-left backdrop-blur">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+                    <p className="text-xs leading-relaxed text-cream-100/70">
+                      {arError}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* footer instructions */}
             <div className="grid grid-cols-3 gap-2 border-t border-white/10 bg-ink-900/95 px-4 py-4 text-center sm:px-8">
               <div className="flex flex-col items-center gap-1.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5">
